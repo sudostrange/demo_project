@@ -53,6 +53,15 @@ def list_users(limit: int = 20, skip: int = 0, sort: str = "id"):
     return rows
 
 
+def verify_user(user_id: str, password: str):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, name FROM users WHERE id = ? AND password = ?", (user_id, password))
+    row = cur.fetchone()
+    conn.close()
+    return row
+
+
 def search_users(q: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()

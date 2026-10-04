@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 
-from db import count_users, get_user, init_db, list_users, search_users
-from models import PaginatedUsers, UserOut
+from auth import create_access_token
+from db import count_users, get_user, init_db, list_users, search_users, verify_user
+from models import LoginIn, PaginatedUsers, TokenOut, UserOut
 
 
 @asynccontextmanager
@@ -45,3 +46,11 @@ def read_users(
 def search(q: str = Query(..., min_length=1, max_length=50)):
     rows = search_users(q)
     return [{"id": r[0], "name": r[1]} for r in rows]
+
+
+@app.post("/users/login", response_model=TokenOut)
+def login(body: LoginIn):
+    row = verify_user(body.id, body.password)
+    if row is None:
+        raise HTTPException(status_code=401, detail="bad credentials")
+    return TokenOut(access_token=create_access_token(row[0], row[1]))

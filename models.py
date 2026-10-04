@@ -11,3 +11,13 @@ class PaginatedUsers(BaseModel):
     skip: int
     limit: int
     rows: list[UserOut]
+
+
+class LoginIn(BaseModel):
+    id: str
+    password: str
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
