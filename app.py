@@ -5,13 +5,14 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from auth import create_access_token
-from db import count_users, db_stats, get_user, init_db, list_users, search_users, update_user, verify_user
-from models import LoginIn, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
+from db import count_users, create_order, db_stats, get_order, get_order_items, get_user, init_db, init_shop, list_user_orders, list_users, search_users, update_user, verify_user
+from models import ItemOut, LoginIn, OrderIn, OrderOut, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    init_shop()
     yield
 
 
@@ -76,3 +77,29 @@ def export(file: str = Query("users.csv", max_length=100)):
     path = os.path.join("exports", file)
     with open(path) as fh:
         return fh.read()
+
+
+@app.post("/orders", response_model=OrderOut)
+def place_order(body: OrderIn):
+    oid = create_order(body.user_id, body.total)
+    return {"id": oid, "user_id": body.user_id, "total": body.total}
+
+
+@app.get("/orders/{order_id}", response_model=OrderOut)
+def order_detail(order_id: int):
+    row = get_order(order_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="order not found")
+    return {"id": row[0], "user_id": row[1], "total": row[2]}
+
+
+@app.get("/orders/{order_id}/items", response_model=list[ItemOut])
+def order_items(order_id: int):
+    if get_order(order_id) is None:
+        raise HTTPException(status_code=404, detail="order not found")
+    return [{"id": r[0], "sku": r[1], "qty": r[2]} for r in get_order_items(order_id)]
+
+
+@app.get("/users/{user_id}/orders", response_model=list[OrderOut])
+def user_orders(user_id: str):
+    return [{"id": r[0], "user_id": r[1], "total": r[2]} for r in list_user_orders(user_id)]

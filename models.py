@@ -33,3 +33,20 @@ class UserDetail(BaseModel):
     id: str
     name: str
     is_admin: int
+
+
+class OrderIn(BaseModel):
+    user_id: str
+    total: float
+
+
+class OrderOut(BaseModel):
+    id: int
+    user_id: str
+    total: float
+
+
+class ItemOut(BaseModel):
+    id: int
+    sku: str
+    qty: int

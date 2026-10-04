@@ -47,6 +47,65 @@ def db_stats() -> dict:
     return {"users": count_users(), "db_bytes": os.path.getsize(DB_PATH)}
 
 
+def init_shop() -> None:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("DROP TABLE IF EXISTS items")
+    cur.execute("DROP TABLE IF EXISTS orders")
+    cur.execute("CREATE TABLE orders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, total REAL)")
+    cur.execute(
+        "CREATE TABLE items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id INTEGER, sku TEXT, qty INTEGER)"
+    )
+    seed = [
+        ("1", 42.5), ("1", 9.99), ("2", 100.0), ("2", 15.0),
+        ("3", 7.5), ("4", 250.0), ("4", 33.0), ("5", 12.0),
+    ]
+    cur.executemany("INSERT INTO orders (user_id, total) VALUES (?, ?)", seed)
+    cur.executemany(
+        "INSERT INTO items (order_id, sku, qty) VALUES (?, ?, ?)",
+        [(oid, f"SKU-{oid:03d}", (oid % 3) + 1) for oid in range(1, 9)],
+    )
+    conn.commit()
+    conn.close()
+
+
+def create_order(user_id: str, total: float) -> int:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO orders (user_id, total) VALUES (?, ?)", (user_id, total))
+    oid = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return oid
+
+
+def get_order(order_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, user_id, total FROM orders WHERE id = ?", (order_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row
+
+
+def list_user_orders(user_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, user_id, total FROM orders WHERE user_id = ?", (user_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
+def get_order_items(order_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, sku, qty FROM items WHERE order_id = ?", (order_id,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
 def list_users(limit: int = 20, skip: int = 0, sort: str = "id"):
     col = sort if sort in ("id", "name") else "id"
     conn = sqlite3.connect(DB_PATH)
