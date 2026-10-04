@@ -3,8 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 
 from auth import create_access_token
-from db import count_users, get_user, init_db, list_users, search_users, verify_user
-from models import LoginIn, PaginatedUsers, TokenOut, UserOut
+from db import count_users, get_user, init_db, list_users, search_users, update_user, verify_user
+from models import LoginIn, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
 
 @asynccontextmanager
@@ -54,3 +54,11 @@ def login(body: LoginIn):
     if row is None:
         raise HTTPException(status_code=401, detail="bad credentials")
     return TokenOut(access_token=create_access_token(row[0], row[1]))
+
+
+@app.patch("/users/{user_id}", response_model=UserDetail)
+def patch_user(user_id: str, body: UserPatch):
+    row = update_user(user_id, body.model_dump(exclude_none=True))
+    if row is None:
+        raise HTTPException(status_code=404, detail="no updatable fields or user not found")
+    return {"id": row[0], "name": row[1], "is_admin": row[2]}

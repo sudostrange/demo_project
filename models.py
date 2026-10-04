@@ -21,3 +21,15 @@ class LoginIn(BaseModel):
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class UserPatch(BaseModel):
+    name: str | None = None
+    password: str | None = None
+    is_admin: int | None = None
+
+
+class UserDetail(BaseModel):
+    id: str
+    name: str
+    is_admin: int

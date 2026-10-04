@@ -16,8 +16,11 @@ def init_db() -> None:
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("DROP TABLE IF EXISTS users")
-    cur.execute("CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, password TEXT)")
-    cur.executemany("INSERT INTO users VALUES (?, ?, ?)", SEED_USERS)
+    cur.execute("CREATE TABLE users (id TEXT PRIMARY KEY, name TEXT, password TEXT, is_admin INTEGER DEFAULT 0)")
+    cur.executemany(
+        "INSERT INTO users VALUES (?, ?, ?, ?)",
+        [(uid, name, pwd, 1 if uid == "1" else 0) for uid, name, pwd in SEED_USERS],
+    )
     conn.commit()
     conn.close()
 
@@ -57,6 +60,22 @@ def verify_user(user_id: str, password: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("SELECT id, name FROM users WHERE id = ? AND password = ?", (user_id, password))
+    row = cur.fetchone()
+    conn.close()
+    return row
+
+
+def update_user(user_id: str, fields: dict):
+    allowed = ("name", "password", "is_admin")
+    sets = [f"{k} = ?" for k in fields if k in allowed]
+    if not sets:
+        return None
+    vals = [fields[k] for k in fields if k in allowed]
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute(f"UPDATE users SET {', '.join(sets)} WHERE id = ?", (*vals, user_id))
+    conn.commit()
+    cur.execute("SELECT id, name, is_admin FROM users WHERE id = ?", (user_id,))
     row = cur.fetchone()
     conn.close()
     return row
