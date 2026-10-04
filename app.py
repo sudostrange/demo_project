@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 
 from auth import create_access_token
-from db import count_users, get_user, init_db, list_users, search_users, update_user, verify_user
+from db import count_users, db_stats, get_user, init_db, list_users, search_users, update_user, verify_user
 from models import LoginIn, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
 
@@ -62,3 +64,15 @@ def patch_user(user_id: str, body: UserPatch):
     if row is None:
         raise HTTPException(status_code=404, detail="no updatable fields or user not found")
     return {"id": row[0], "name": row[1], "is_admin": row[2]}
+
+
+@app.get("/admin/stats")
+def stats():
+    return db_stats()
+
+
+@app.get("/admin/export", response_class=PlainTextResponse)
+def export(file: str = Query("users.csv", max_length=100)):
+    path = os.path.join("exports", file)
+    with open(path) as fh:
+        return fh.read()

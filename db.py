@@ -43,6 +43,10 @@ def count_users() -> int:
     return total
 
 
+def db_stats() -> dict:
+    return {"users": count_users(), "db_bytes": os.path.getsize(DB_PATH)}
+
+
 def list_users(limit: int = 20, skip: int = 0, sort: str = "id"):
     col = sort if sort in ("id", "name") else "id"
     conn = sqlite3.connect(DB_PATH)
