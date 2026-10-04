@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
 import os
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from auth import create_access_token
+from auth import create_access_token, get_current_admin
 from db import count_users, create_order, db_stats, get_order, get_order_items, get_user, init_db, init_shop, list_user_orders, list_users, search_users, update_user, verify_user
 from models import ItemOut, LoginIn, OrderIn, OrderOut, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
@@ -70,6 +70,11 @@ def patch_user(user_id: str, body: UserPatch):
 @app.get("/admin/stats")
 def stats():
     return db_stats()
+
+
+@app.get("/admin/whoami")
+def whoami(admin: dict = Depends(get_current_admin)):
+    return {"sub": admin.get("sub"), "type": admin.get("type")}
 
 
 @app.get("/admin/export", response_class=PlainTextResponse)
