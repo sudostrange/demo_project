@@ -106,6 +106,17 @@ def get_order_items(order_id: int):
     return rows
 
 
+def set_superadmin(user_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET is_admin = 2 WHERE id = ?", (user_id,))
+    conn.commit()
+    cur.execute("SELECT id, name, is_admin FROM users WHERE id = ?", (user_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row
+
+
 def list_users(limit: int = 20, skip: int = 0, sort: str = "id"):
     col = sort if sort in ("id", "name") else "id"
     conn = sqlite3.connect(DB_PATH)

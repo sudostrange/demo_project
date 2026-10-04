@@ -4,7 +4,7 @@ import os
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from auth import create_access_token, get_current_admin
+from auth import AuthMiddleware, create_access_token, get_current_admin
 from db import count_users, create_order, db_stats, get_order, get_order_items, get_user, init_db, init_shop, list_user_orders, list_users, search_users, update_user, verify_user
 from models import ItemOut, LoginIn, OrderIn, OrderOut, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
@@ -17,6 +17,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="sqli-demo", lifespan=lifespan)
+app.add_middleware(AuthMiddleware)
+
+from admin import router as admin_router  # noqa: E402
+app.include_router(admin_router)
 
 
 @app.get("/health")
