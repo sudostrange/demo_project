@@ -20,8 +20,7 @@ def init_db() -> None:
 def get_user(user_id: str):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    query = f"SELECT id, name, password FROM users WHERE id = '{user_id}'"
-    cur.execute(query)
+    cur.execute("SELECT id, name, password FROM users WHERE id = ?", (user_id,))
     rows = cur.fetchall()
     conn.close()
     return rows
