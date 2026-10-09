@@ -21,6 +21,13 @@ a { color:var(--acc); text-decoration:none; }
 .card .value { font-size:28px; font-weight:700; margin:6px 0; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 @media (max-width:800px){ .grid2{grid-template-columns:1fr;} .sidebar{display:none;} }
+.charts { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.charts .wide { grid-column:1 / -1; }
+.chart-panel { min-height:280px; }
+.chart-panel.wide { min-height:240px; }
+.canvas-wrap { position:relative; height:220px; }
+.chart-panel.wide .canvas-wrap { height:200px; }
+@media (max-width:900px){ .charts{grid-template-columns:1fr;} }
 .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; }
 .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .panel-head h2 { margin:0; font-size:18px; }

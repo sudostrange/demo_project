@@ -197,3 +197,31 @@ def list_orders(limit: int = 50, skip: int = 0):
 
 def recent_orders(limit: int = 5):
     return list_orders(limit=limit, skip=0)
+
+
+def stats_by_user():
+    """Per-user order count + revenue, for dashboard charts."""
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT u.id, u.name,
+               COUNT(o.id) AS order_count,
+               COALESCE(SUM(o.total), 0) AS revenue
+        FROM users u LEFT JOIN orders o ON o.user_id = u.id
+        GROUP BY u.id, u.name ORDER BY u.id
+        """
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
+def orders_series(limit: int = 50):
+    """Order totals in id order, for trend chart."""
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, total FROM orders ORDER BY id ASC LIMIT ?", (limit,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows

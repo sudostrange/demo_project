@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from auth import AuthMiddleware, create_access_token, get_current_admin
-from db import count_orders, count_users, create_order, db_stats, get_order, get_order_items, get_user, init_db, init_shop, list_orders, list_user_orders, list_users, order_revenue, recent_orders, search_users, update_user, verify_user
+from db import count_orders, count_users, create_order, db_stats, get_order, get_order_items, get_user, init_db, init_shop, list_orders, list_user_orders, list_users, order_revenue, orders_series, recent_orders, search_users, stats_by_user, update_user, verify_user
 from models import ItemOut, LoginIn, OrderIn, OrderOut, PaginatedUsers, TokenOut, UserDetail, UserOut, UserPatch
 
 
@@ -39,6 +39,8 @@ def root():
 @app.get("/dashboard", response_class=HTMLResponse, include_in_schema=False)
 def dashboard_page(request: Request):
     stats = db_stats()
+    per_user = stats_by_user()
+    series = orders_series(50)
     ctx = {
         "active": "dashboard",
         "total_users": stats.get("users", 0),
@@ -51,8 +53,26 @@ def dashboard_page(request: Request):
         "users_preview": [
             {"id": r[0], "name": r[1]} for r in list_users(limit=5, skip=0)
         ],
+        "chart_labels": [f"{r[1]} (#{r[0]})" for r in per_user],
+        "chart_counts": [r[2] for r in per_user],
+        "chart_revenue": [round(float(r[3]), 2) for r in per_user],
+        "trend_labels": [f"#{r[0]}" for r in series],
+        "trend_values": [float(r[1]) for r in series],
     }
     return templates.TemplateResponse(request, "dashboard.html", ctx)
+
+
+@app.get("/api/chart-data", include_in_schema=False)
+def chart_data():
+    per_user = stats_by_user()
+    series = orders_series(50)
+    return {
+        "labels": [f"{r[1]} (#{r[0]})" for r in per_user],
+        "counts": [r[2] for r in per_user],
+        "revenue": [round(float(r[3]), 2) for r in per_user],
+        "trend_labels": [f"#{r[0]}" for r in series],
+        "trend_values": [float(r[1]) for r in series],
+    }
 
 
 @app.get("/dashboard/users", response_class=HTMLResponse, include_in_schema=False)
