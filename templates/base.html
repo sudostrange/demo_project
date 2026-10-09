@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Dashboard{% endblock %} · super dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><span class="dot"></span> super dashboard</div>
+      <nav>
+        <a href="/dashboard" class="{% if active == 'dashboard' %}active{% endif %}">Overview</a>
+        <a href="/dashboard/users" class="{% if active == 'users' %}active{% endif %}">Users</a>
+        <a href="/dashboard/orders" class="{% if active == 'orders' %}active{% endif %}">Orders</a>
+        <a href="/dashboard/login" class="{% if active == 'login' %}active{% endif %}">Login</a>
+      </nav>
+      <div class="side-foot">
+        <a href="/docs">API docs</a>
+        <a href="/health">health</a>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>{% block header %}Dashboard{% endblock %}</h1>
+          <p class="muted">{% block subheader %}Shop overview{% endblock %}</p>
+        </div>
+        <div class="top-actions">
+          <span id="auth-status" class="pill">not logged in</span>
+          <button id="logout-btn" class="btn ghost" type="button">Logout</button>
+        </div>
+      </header>
+      <section class="content">
+        {% block content %}{% endblock %}
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

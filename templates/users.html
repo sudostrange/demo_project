@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block header %}Users{% endblock %}
+{% block subheader %}{{ total }} total · paginated & searchable{% endblock %}
+{% block content %}
+<div class="panel">
+  <form method="get" action="/dashboard/users" class="row wrap">
+    <input name="q" placeholder="search name…" value="{{ q }}" />
+    <select name="sort">
+      <option value="id" {% if sort == 'id' %}selected{% endif %}>sort: id</option>
+      <option value="name" {% if sort == 'name' %}selected{% endif %}>sort: name</option>
+    </select>
+    <select name="limit">
+      {% for n in [10, 20, 50, 100] %}
+      <option value="{{ n }}" {% if limit == n %}selected{% endif %}>{{ n }} / page</option>
+      {% endfor %}
+    </select>
+    <button class="btn" type="submit">Apply</button>
+    <a class="btn ghost" href="/dashboard/users">Reset</a>
+  </form>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Orders</th></tr></thead>
+    <tbody>
+      {% for u in rows %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.name }}</td>
+        <td><a href="/users/{{ u.id }}/orders" target="_blank">api</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="muted">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager">
+    <span class="muted">skip {{ skip }} · limit {{ limit }} · total {{ total }}</span>
+    <span>
+      {% if skip > 0 %}
+      <a class="btn ghost" href="/dashboard/users?skip={{ prev_skip }}&limit={{ limit }}&sort={{ sort }}&q={{ q }}">← Prev</a>
+      {% endif %}
+      {% if has_next %}
+      <a class="btn ghost" href="/dashboard/users?skip={{ next_skip }}&limit={{ limit }}&sort={{ sort }}&q={{ q }}">Next →</a>
+      {% endif %}
+    </span>
+  </div>
+</div>
+{% endblock %}

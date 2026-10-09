@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block header %}Orders{% endblock %}
+{% block subheader %}{{ total }} total · ${{ "%.2f"|format(revenue) }} revenue{% endblock %}
+{% block content %}
+<div class="panel">
+  <table>
+    <thead><tr><th>ID</th><th>User</th><th>Total</th><th></th></tr></thead>
+    <tbody>
+      {% for o in rows %}
+      <tr>
+        <td>#{{ o.id }}</td>
+        <td>{{ o.user_id }}</td>
+        <td>${{ "%.2f"|format(o.total) }}</td>
+        <td><a href="/dashboard/orders/{{ o.id }}">detail →</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="muted">No orders.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="pager">
+    <span class="muted">skip {{ skip }} · limit {{ limit }} · total {{ total }}</span>
+    <span>
+      {% if skip > 0 %}
+      <a class="btn ghost" href="/dashboard/orders?skip={{ prev_skip }}&limit={{ limit }}">← Prev</a>
+      {% endif %}
+      {% if has_next %}
+      <a class="btn ghost" href="/dashboard/orders?skip={{ next_skip }}&limit={{ limit }}">Next →</a>
+      {% endif %}
+    </span>
+  </div>
+</div>
+{% endblock %}

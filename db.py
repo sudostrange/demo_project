@@ -163,3 +163,37 @@ def search_users(q: str):
     rows = cur.fetchall()
     conn.close()
     return rows
+
+
+def count_orders() -> int:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM orders")
+    (total,) = cur.fetchone()
+    conn.close()
+    return total
+
+
+def order_revenue() -> float:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT COALESCE(SUM(total), 0) FROM orders")
+    (total,) = cur.fetchone()
+    conn.close()
+    return float(total)
+
+
+def list_orders(limit: int = 50, skip: int = 0):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, user_id, total FROM orders ORDER BY id DESC LIMIT ? OFFSET ?",
+        (limit, skip),
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+
+def recent_orders(limit: int = 5):
+    return list_orders(limit=limit, skip=0)

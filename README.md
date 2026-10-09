@@ -1,4 +1,4 @@
-# sqli-demo
+# super dashboard
 
 pip install -r requirements.txt
 uvicorn app:app --port 8000

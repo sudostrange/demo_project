@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block header %}Login{% endblock %}
+{% block subheader %}Get a bearer token, stored in localStorage{% endblock %}
+{% block content %}
+<div class="panel narrow">
+  <form id="login-form" class="col">
+    <label>ID <input name="id" value="1" required /></label>
+    <label>Password <input name="password" type="password" value="alice123" required /></label>
+    <button class="btn" type="submit">Login</button>
+  </form>
+  <p id="login-result" class="muted"></p>
+  <pre id="token-out" class="code"></pre>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const res = await fetch('/users/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({id: fd.get('id'), password: fd.get('password')}),
+  });
+  const out = document.getElementById('login-result');
+  const tok = document.getElementById('token-out');
+  if (res.ok) {
+    const data = await res.json();
+    localStorage.setItem('token', data.access_token);
+    out.textContent = 'Logged in. Token saved.';
+    tok.textContent = data.access_token;
+    updateAuthStatus();
+  } else {
+    out.textContent = 'Login failed: ' + await res.text();
+  }
+});
+</script>
+{% endblock %}

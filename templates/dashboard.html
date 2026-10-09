@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block header %}Overview{% endblock %}
+{% block subheader %}Users, orders and revenue at a glance{% endblock %}
+{% block content %}
+<div class="cards">
+  <div class="card">
+    <div class="label">Total users</div>
+    <div class="value">{{ total_users }}</div>
+    <div class="muted">{{ db_bytes }} bytes db</div>
+  </div>
+  <div class="card">
+    <div class="label">Total orders</div>
+    <div class="value">{{ total_orders }}</div>
+    <div class="muted"><a href="/dashboard/orders">view all →</a></div>
+  </div>
+  <div class="card">
+    <div class="label">Revenue</div>
+    <div class="value">${{ "%.2f"|format(revenue) }}</div>
+    <div class="muted">sum of order totals</div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent orders</h2>
+      <a href="/dashboard/orders">view all</a>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>User</th><th>Total</th><th></th></tr></thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td>#{{ o.id }}</td>
+          <td>{{ o.user_id }}</td>
+          <td>${{ "%.2f"|format(o.total) }}</td>
+          <td><a href="/dashboard/orders/{{ o.id }}">detail</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="muted">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Users</h2>
+      <a href="/dashboard/users">view all</a>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>Name</th></tr></thead>
+      <tbody>
+        {% for u in users_preview %}
+        <tr><td>{{ u.id }}</td><td>{{ u.name }}</td></tr>
+        {% else %}
+        <tr><td colspan="2" class="muted">No users.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3 class="mt">Quick lookup</h3>
+    <form method="get" action="/dashboard/users" class="row">
+      <input name="q" placeholder="search name…" value="" />
+      <button class="btn" type="submit">Search</button>
+    </form>
+
+    <h3 class="mt">Create order</h3>
+    <form id="order-form" class="row">
+      <input name="user_id" placeholder="user_id" required />
+      <input name="total" placeholder="total" type="number" step="0.01" min="0" required />
+      <button class="btn" type="submit">Place</button>
+    </form>
+    <p id="order-result" class="muted"></p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('order-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const res = await fetch('/orders', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({user_id: fd.get('user_id'), total: parseFloat(fd.get('total'))}),
+  });
+  const out = document.getElementById('order-result');
+  out.textContent = res.ok ? 'Order created: ' + JSON.stringify(await res.json())
+                           : 'Error: ' + await res.text();
+  if (res.ok) setTimeout(() => location.reload(), 600);
+});
+</script>
+{% endblock %}
